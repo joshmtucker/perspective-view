@@ -1,8 +1,7 @@
 # Perspective module
+{PerspectiveView} = require "perspective-view"
 
-{Perspective} = require "perspective-view"
-
-p = new Perspective
+perspectiveView = new PerspectiveView
 
 # Some random layers
 
@@ -20,6 +19,5 @@ for i in [1..16]
 	layer.center()
 	
 layers[16].on Events.Tap, ->
-	Framer.Device.phone.backgroundColor = "pink"
-	p.togglePerspective()
+	perspectiveView.togglePerspective()
 	

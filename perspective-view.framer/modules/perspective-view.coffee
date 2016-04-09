@@ -4,25 +4,22 @@ class exports.PerspectiveView
 	rotateObject = null
 	initialRotation = 0
 
-	screen = Framer.Device.screen
-	device = Framer.Device.phone
 	allLayers = null
 
 	togglePerspective: (verticalSeparation = 40, temporalOpacity = 0.8) ->
 		allLayers = Framer.CurrentContext.getLayers()
 
-		# EVENTS
-		rotateObject = if Framer.Device.deviceType isnt "fullscreen" then device else screen
+		rotateObject = if Framer.Device.deviceType isnt "fullscreen" then Framer.Device.phone else Framer.Device.screen
 		@_eventsOn() 
 
-		if not activated and not @_childrenAnimating(screen.children)
+		if not activated and not @_childrenAnimating(Framer.Device.screen.children)
 			activated = true
-			screen.clip = false
+			Framer.Device.screen.clip = false
 
-			@_setAllLayersAsChildrenOf(screen)
+			@_setAllLayersAsChildrenOf(Framer.Device.screen)
 
-			device.originalProps = device.props
-			device.animate
+			rotateObject.originalProps = rotateObject.props
+			rotateObject.animate
 				properties:
 					rotationZ: 45
 					rotationX: 45
@@ -30,7 +27,7 @@ class exports.PerspectiveView
 					y: verticalSeparation * (allLayers.length / 3.4)
 				curve: animationCurve
 
-			for layer in screen.children
+			for layer in Framer.Device.screen.children
 				layer.originalProps = layer.props
 
 				layer.animate
@@ -40,33 +37,34 @@ class exports.PerspectiveView
 					delay: (allLayers.length - layer.index) / allLayers.length
 					curve: animationCurve
 
-		else if activated and not @_childrenAnimating(screen.children)
+		else if activated and not @_childrenAnimating(Framer.Device.screen.children)
 			activated = false
 			@_eventsOff()
 
-			rotationNegative = device.rotationZ < 0
+			rotationNegative = rotateObject.rotationZ < 0
 
-			if Math.abs(device.rotationZ) > 180
-				device.originalProps.rotationZ = if rotationNegative then -360 else 360
+			if Math.abs(rotateObject.rotationZ) > 180
+				rotateObject.originalProps.rotationZ = if rotationNegative then -360 else 360
 			else
-				device.originalProps.rotationZ = if rotationNegative then -0 else 0
+				rotateObject.originalProps.rotationZ = if rotationNegative then -0 else 0
 
-			device.animate
+			rotateObject.animate
 				properties:
-					rotationZ: device.originalProps.rotationZ
-					rotationX: device.originalProps.rotationX
-					scaleY: device.originalProps.scaleY
-					y: device.originalProps.y 
+					rotationZ: rotateObject.originalProps.rotationZ
+					rotationX: rotateObject.originalProps.rotationX
+					scaleY: rotateObject.originalProps.scaleY
+					y: rotateObject.originalProps.y 
 				curve: animationCurve
 
-			for layer in screen.children when screen.children.indexOf(layer) isnt 0
+			for layer in Framer.Device.screen.children when Framer.Device.screen.children.indexOf(layer) isnt 0
 				layer.animate
 					properties: layer.originalProps
 					curve: animationCurve
 
-			device.once Events.AnimationEnd, ->
-				screen.clip = true
-				layer.parent = null for layer in screen.children when screen.children.indexOf(layer) isnt 0
+			rotateObject.once Events.AnimationEnd, ->
+				Framer.Device.screen.clip = true
+				rotateObject.rotationZ = 0
+				layer.parent = null for layer in Framer.Device.screen.children when Framer.Device.screen.children.indexOf(layer) isnt 0
 
 	_setAllLayersAsChildrenOf: (parent) ->
 		for layer in allLayers when layer.parent is null
@@ -74,6 +72,8 @@ class exports.PerspectiveView
 
 	_childrenAnimating: (layersArray) ->
 		_.some layersArray, (layer) -> layer.isAnimating
+
+	### EVENTS ###
 
 	_panStart: ->
 		initialRotation = rotateObject.rotationZ
@@ -85,7 +85,7 @@ class exports.PerspectiveView
 		rotateObject.rotationZ = rotateObject.rotationZ % 360
 
 	_eventsOn: ->
-		if rotateObject is screen
+		if rotateObject is Framer.Device.screen
 			rotateObject.animate
 				properties:
 					backgroundColor: "rgba(128, 128, 128, 0.2)"
@@ -95,7 +95,7 @@ class exports.PerspectiveView
 		rotateObject.on(Events.PanEnd, @_panEnd)
 
 	_eventsOff: ->
-		if rotateObject is screen
+		if rotateObject is Framer.Device.screen
 			rotateObject.animate
 				properties:
 					backgroundColor: "transparent"
